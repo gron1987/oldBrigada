@@ -94,11 +94,20 @@ class Parser
     {
         $result = array();
 
+        $db = ParserDB::getInstance();
+
         foreach (Parser::$links as $link) {
             $html = $this->_getPage($link);
             $html = $this->_getImgSrcOutsideTag($html);
             $text = $this->_stripAndIconv($html);
-            $result[$link] = $this->_getItemsFromText($text);
+            $items = $this->_getItemsFromText($text);
+            $result[$link] = $items;
+
+            foreach($items as $item){
+                $db->insertItem($item);
+            }
+
+            die();
         }
 
         return $result;
