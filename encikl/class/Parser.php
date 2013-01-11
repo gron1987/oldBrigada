@@ -18,31 +18,9 @@ class Parser
     public static $curlEnabled = false;
 
     /**
-     * @var array Links to parse
+     * @var array INI data
      */
-    public static $links = array(
-        "http://oldbk.com/encicl/?/cap_flowers_kr_elki.html",
-        "http://oldbk.com/encicl/?/kasteti.html",
-        "http://oldbk.com/encicl/?/axe.html",
-        "http://oldbk.com/encicl/?/dubini.html",
-        "http://oldbk.com/encicl/?/swords.html",
-        "http://oldbk.com/encicl/?/boots.html",
-        "http://oldbk.com/encicl/?/naruchi.html",
-        "http://oldbk.com/encicl/?/robi.html",
-        "http://oldbk.com/encicl/?/armors.html",
-        "http://oldbk.com/encicl/?/helmet.html",
-        "http://oldbk.com/encicl/?/plash.html",
-        "http://oldbk.com/encicl/?/shields.html",
-        "http://oldbk.com/encicl/?/clips.html",
-        "http://oldbk.com/encicl/?/amulets.html",
-        "http://oldbk.com/encicl/?/rings.html",
-        "http://oldbk.com/encicl/?/amun.html",
-        "http://oldbk.com/encicl/?/eda.html",
-        "http://oldbk.com/encicl/?/svecha_gos.html",
-        "http://oldbk.com/encicl/?/mag1.html",
-        "http://oldbk.com/encicl/?/mag2.html",
-        "http://oldbk.com/encicl/?/servis.html"
-    );
+    private $_iniData = array();
 
     /**
      * @var array Array with ini data. In format for example:
@@ -96,7 +74,9 @@ class Parser
 
         $db = ParserDB::getInstance();
 
-        foreach (Parser::$links as $link) {
+        $links = $this->_iniData['links']['links'];
+
+        foreach ($links as $link) {
             $html = $this->_getPage($link);
             $html = $this->_getImgSrcOutsideTag($html);
             $text = $this->_stripAndIconv($html);
@@ -117,11 +97,11 @@ class Parser
      * Get INI array. By default use .ini file. Maybe in future move to XML
      */
     private function _getIniData(){
-        $array = parse_ini_file(__DIR__ . "/../" . Parser::INI_FILE, true);
+        $this->_iniData = parse_ini_file(__DIR__ . "/../" . Parser::INI_FILE, true);
         $resultArr = array();
-        foreach ($array as $key => $item) {
+        foreach ($this->_iniData as $key => $item) {
             if (isset($item['non_extra']) && ($item['non_extra'] == 1)) {
-                $withSubs = $this->_getSubsData($array, $item);
+                $withSubs = $this->_getSubsData($this->_iniData, $item);
                 $resultArr[$key] = $withSubs;
             }
         }
