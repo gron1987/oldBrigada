@@ -73,6 +73,7 @@ class Parser
         $result = array();
 
         $db = ParserDB::getInstance();
+        $db->setIniData($this->_iniData);
 
         $links = $this->_iniData['links']['links'];
 
@@ -86,8 +87,6 @@ class Parser
             foreach($items as $item){
                 $db->insertItem($item);
             }
-
-            die();
         }
 
         return $result;
