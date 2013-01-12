@@ -20,12 +20,12 @@ class Parser
     /**
      * @var array INI data
      */
-    private $_iniData = array();
+    protected $_iniData = array();
 
     /**
      * @var null|ParserDB PDO wrapper object
      */
-    private $_db = null;
+    protected $_db = null;
 
     /**
      * @var array Array with ini data. In format for example:
@@ -63,7 +63,7 @@ class Parser
     public function __construct()
     {
         if (extension_loaded('curl')) {
-            Parser::$curlEnabled = true;
+            self::$curlEnabled = true;
         }
 
         $this->_getIniData();
@@ -72,7 +72,7 @@ class Parser
     /**
      * Setup DB
      */
-    protected function setupDB(){
+    protected function _setupDB(){
         $this->_db = ParserDB::getInstance();
         $this->_db->setIniData($this->_iniData);
     }
@@ -83,18 +83,23 @@ class Parser
      */
     public function run()
     {
+        $result = array();
+        $this->_setupDB();
         $links = $this->_iniData['links']['links'];
         foreach ($links as $link) {
             $html = $this->_getPage($link);
             $html = $this->_getImgSrcOutsideTag($html);
             $text = $this->_stripAndIconv($html);
             $items = $this->_getItemsFromText($text);
+            $result[$link] = $items;
 
             foreach($items as $item){
                 $this->_db->insertItem($item);
-                echo "Add item " . $item['itemName'] ." from link " . $link . PHP_EOL;
+                $this->_log("Add item " . $item['itemName'] ." from link " . $link . PHP_EOL);
             }
         }
+
+        return $result;
     }
 
     /**
@@ -111,10 +116,19 @@ class Parser
     }
 
     /**
+     * Log message,
+     * TODO: In first implementation -> echo, next add to another class with error_log, DB, etc.
+     * @param $msg
+     */
+    protected function _log($msg){
+        echo $msg;
+    }
+
+    /**
      * Get INI array. By default use .ini file. Maybe in future move to XML
      */
-    private function _getIniData(){
-        $this->_iniData = parse_ini_file(__DIR__ . "/../" . Parser::INI_FILE, true);
+    protected function _getIniData(){
+        $this->_iniData = parse_ini_file(__DIR__ . "/../" . self::INI_FILE, true);
         $resultArr = array();
         foreach ($this->_iniData as $key => $item) {
             if (isset($item['non_extra']) && ($item['non_extra'] == 1)) {
@@ -170,7 +184,7 @@ class Parser
      */
     private function _getPage($url)
     {
-        if (Parser::$curlEnabled) {
+        if (self::$curlEnabled) {
             $curl = curl_init();
 
             curl_setopt_array($curl, array(
