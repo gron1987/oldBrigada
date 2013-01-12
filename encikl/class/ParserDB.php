@@ -78,8 +78,8 @@ class ParserDB
     {
         $filteredItem = array();
         $this->_addToFilteredItem( "", $item, $filteredItem );
-        $dbFieldsStr = implode(",",array_values($this->_fieldsToUse));
-        $itemKeyFieldsStr = ":" .implode(",:",array_values($this->_fieldsToUse));
+        $dbFieldsStr = implode(",",array_keys($filteredItem));
+        $itemKeyFieldsStr = ":" .implode(",:",array_keys($filteredItem));
 
         $sql = "INSERT INTO `" . self::DB_TABLE . "` (" . $dbFieldsStr . ") VALUES (" . $itemKeyFieldsStr . ")";
         $preparedStmt = $this->_pdo->prepare( $sql );

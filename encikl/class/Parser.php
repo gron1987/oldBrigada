@@ -23,6 +23,11 @@ class Parser
     private $_iniData = array();
 
     /**
+     * @var null|ParserDB PDO wrapper object
+     */
+    private $_db = null;
+
+    /**
      * @var array Array with ini data. In format for example:
      * 'min_required' => (
      *      'non_extra' => (tinyint),
@@ -65,31 +70,44 @@ class Parser
     }
 
     /**
+     * Setup DB
+     */
+    protected function setupDB(){
+        $this->_db = ParserDB::getInstance();
+        $this->_db->setIniData($this->_iniData);
+    }
+
+    /**
      * Main point to start
      * @return array
      */
     public function run()
     {
-        $result = array();
-
-        $db = ParserDB::getInstance();
-        $db->setIniData($this->_iniData);
-
         $links = $this->_iniData['links']['links'];
-
         foreach ($links as $link) {
             $html = $this->_getPage($link);
             $html = $this->_getImgSrcOutsideTag($html);
             $text = $this->_stripAndIconv($html);
             $items = $this->_getItemsFromText($text);
-            $result[$link] = $items;
 
             foreach($items as $item){
-                $db->insertItem($item);
+                $this->_db->insertItem($item);
+                echo "Add item " . $item['itemName'] ." from link " . $link . PHP_EOL;
             }
         }
+    }
 
-        return $result;
+    /**
+     * Insert item from admin panel
+     * @param $text text to insert from admin panel
+     */
+    public function runFromAdmin( $text ){
+        $items = $this->_getItemsFromText($text);
+
+        foreach($items as $item){
+            $this->_db->insertItem($item);
+            echo "Add item " . $item['itemName'] ." from admin text " . PHP_EOL;
+        }
     }
 
     /**
